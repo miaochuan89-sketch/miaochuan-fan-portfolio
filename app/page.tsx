@@ -1,18 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-
-const projects = [
-  { number: '01', mark: 'RT', title: 'Real-time Environment', discipline: 'Unreal · Worldbuilding', summary: 'A cinematic environment built from spatial narrative, modular systems and real-time light.' },
-  { number: '02', mark: 'UX', title: 'UCLA Spatial Research', discipline: 'Research · Experience', summary: 'Design research translated into an inhabitable system, sequence and atmosphere.' },
-  { number: '03', mark: 'ME', title: 'Modular Energy Landscape', discipline: 'Architecture · Systems', summary: 'Infrastructure reframed as a rule-based kit for architecture and digital worldbuilding.' },
-  { number: '04', mark: 'AT', title: 'Agence TER', discipline: 'Professional Work', summary: 'Selected professional contributions across landscape, modeling and visual development.' },
-  { number: '05', mark: 'AI', title: 'AI Visual Development', discipline: 'Workflow · Narrative', summary: 'Controlled image workflows connecting spatial models, iteration and human design decisions.' },
-];
+import { projects } from './projects';
 
 const cubeFaces = [
-  [0, 1, 2, 3], [4, 2, 0, 1], [3, 4, 1, 2],
-  [0, 3, 4, 2], [1, 0, 3, 4], [2, 4, 1, 0],
+  [0, 1, 2, 3, 4, 5, 6, 7, 8],
+  [8, 7, 6, 5, 4, 3, 2, 1, 0],
+  [2, 5, 8, 1, 4, 7, 0, 3, 6],
+  [6, 3, 0, 7, 4, 1, 8, 5, 2],
+  [6, 7, 8, 3, 4, 5, 0, 1, 2],
+  [2, 1, 0, 5, 4, 3, 8, 7, 6],
 ];
 const faceNames = ['front', 'back', 'right', 'left', 'top', 'bottom'];
 
@@ -84,21 +81,20 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="preview-caption" aria-live="polite">
-          {currentProject ? <>
-            <span>{currentProject.number} / 05</span>
+        {currentProject && <div className="preview-caption" aria-live="polite">
+          <>
+            <span>{currentProject.number} / 09</span>
             <p>{currentProject.title}</p>
             <p>{currentProject.discipline}</p>
-            <a href={`#project-${currentProject.number}`}>View project ↘</a>
-          </> : <><span>Selected works</span><p>Move across the index to explore.</p></>}
-        </div>
+            <a href={`/work/${currentProject.slug}`}>View project ↘</a>
+          </>
+        </div>}
         <ol className="project-list" id="index" onPointerLeave={() => setActiveProject(null)}>
           {projects.map((project, index) => (
             <li key={project.number}>
-              <button
-                type="button"
+              <a
+                href={`/work/${project.slug}`}
                 className={index === activeProject ? 'is-active' : ''}
-                aria-pressed={index === activeProject}
                 onClick={() => setActiveProject(index)}
                 onPointerEnter={() => setActiveProject(index)}
                 onFocus={() => setActiveProject(index)}
@@ -106,7 +102,7 @@ export default function Home() {
                 <span className="project-number">{project.number}</span>
                 <span className="project-title">{project.title}</span>
                 <span className="project-discipline">{project.discipline}</span>
-              </button>
+              </a>
             </li>
           ))}
         </ol>
@@ -122,7 +118,7 @@ export default function Home() {
         {projects.map((project, index) => (
           <article className={`project-case project-case-${index + 1}`} id={`project-${project.number}`} key={project.number}>
             <header className="case-heading">
-              <span>{project.number} / 05</span>
+              <span>{project.number} / 09</span>
               <h2>{project.title}</h2>
               <p>{project.discipline}</p>
             </header>
