@@ -47,27 +47,32 @@ a { color: inherit; text-decoration: none; }
 .hero-word.name-word span:first-child { font-size: .74em; }
 @keyframes mark-in { from { opacity: 0; transform: translateY(4vh); } }
 
-.object-stage { --cube-size: min(29vw, 48vh); --cube-x: -18deg; --cube-y: 28deg; --stage-x: 0px; --stage-y: 0px; position: absolute; z-index: 3; left: 35vw; top: 19vh; width: var(--cube-size); height: var(--cube-size); perspective: 1200px; transform: translate(var(--stage-x), var(--stage-y)); transition: transform .35s cubic-bezier(.2,.8,.2,1); touch-action: pan-y; }
+.object-stage { --cube-size: min(25vw, 42vh); --cube-x: -18deg; --cube-y: 28deg; --stage-x: 0px; --stage-y: 0px; position: absolute; z-index: 3; left: 37vw; top: 21vh; width: var(--cube-size); height: var(--cube-size); perspective: 1300px; transform: translate(var(--stage-x), var(--stage-y)); transition: transform .35s cubic-bezier(.2,.8,.2,1); touch-action: pan-y; }
 .cube-pointer, .cube, .cube-face { position: absolute; inset: 0; transform-style: preserve-3d; }
 .cube-pointer { transform: rotateX(var(--cube-x)) rotateY(var(--cube-y)); transition: transform .38s cubic-bezier(.2,.8,.2,1); }
-.cube { animation: cube-idle-spin 22s linear infinite; }
+.cube { animation: cube-idle-spin 28s linear infinite; }
 .object-stage:hover .cube { animation-play-state: paused; }
-.cube-face { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 5px; background: #090909; border: 1px solid rgba(255,255,255,.22); box-shadow: inset 0 0 28px rgba(255,255,255,.05), 0 28px 55px rgba(0,0,0,.32); }
+.cube-face { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 1.15vw, 22px); padding: clamp(7px, .65vw, 13px); background: transparent; border: 0; box-shadow: none; backface-visibility: hidden; }
 .face-front { transform: translateZ(calc(var(--cube-size) / 2)); }
 .face-back { transform: rotateY(180deg) translateZ(calc(var(--cube-size) / 2)); }
 .face-right { transform: rotateY(90deg) translateZ(calc(var(--cube-size) / 2)); }
 .face-left { transform: rotateY(-90deg) translateZ(calc(var(--cube-size) / 2)); }
 .face-top { transform: rotateX(90deg) translateZ(calc(var(--cube-size) / 2)); }
 .face-bottom { transform: rotateX(-90deg) translateZ(calc(var(--cube-size) / 2)); }
-.cube-tile { position: relative; display: flex; align-items: flex-end; padding: .7rem; overflow: hidden; color: rgba(0,0,0,.75); font-size: 10px; font-weight: 700; letter-spacing: .08em; transition: opacity .38s ease, filter .38s ease, background-color .38s ease; }
-.cube-tile::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, transparent 0 18px, rgba(255,255,255,.18) 18px 19px); }
-.cube-tile.project-1 { background: #ff4a16; }
-.cube-tile.project-2 { background: #70a0bd; }
-.cube-tile.project-3 { background: #d4ccbd; }
-.cube-tile.project-4 { background: #7e9a79; }
-.cube-tile.project-5 { background: #b284aa; }
-.cube-tile.is-dim { opacity: .09; filter: grayscale(1); }
-.cube-tile.is-lit { opacity: 1; filter: none; }
+.cube-tile { position: relative; overflow: hidden; color: transparent; font-size: 0; box-shadow: 0 7px 18px rgba(0,0,0,.14); transition: opacity .45s ease, filter .45s ease, transform .45s ease; }
+.cube-tile::after { content: ''; position: absolute; inset: 0; background: linear-gradient(125deg, rgba(255,255,255,.12), transparent 42%, rgba(0,0,0,.22)); mix-blend-mode: soft-light; }
+.cube-tile:nth-child(1) { transform: translate3d(-3%, -2%, 8px); }
+.cube-tile:nth-child(2) { transform: translate3d(4%, 3%, -6px); }
+.cube-tile:nth-child(3) { transform: translate3d(2%, -4%, 10px); }
+.cube-tile:nth-child(4) { transform: translate3d(-4%, 4%, -8px); }
+.cube-tile.project-1 { background: linear-gradient(145deg, #e84d25, #552419); }
+.cube-tile.project-2 { background: linear-gradient(145deg, #8aaaba, #26353d); }
+.cube-tile.project-3 { background: linear-gradient(145deg, #d2cbc0, #5d5953); }
+.cube-tile.project-4 { background: linear-gradient(145deg, #82947c, #263129); }
+.cube-tile.project-5 { background: linear-gradient(145deg, #ae889e, #3f2c38); }
+.selection-idle .cube-tile { opacity: .94; filter: saturate(.7) brightness(.78); }
+.cube-tile.is-dim { opacity: .045; filter: grayscale(1); }
+.cube-tile.is-lit { opacity: .92; filter: none; }
 @keyframes cube-idle-spin { to { transform: rotateY(360deg); } }
 
 .preview-caption { position: absolute; z-index: 7; left: 19vw; bottom: 5vh; display: grid; grid-template-columns: 3em minmax(180px, 1fr); width: 29vw; color: #aaa; }
