@@ -15,6 +15,7 @@ const faceNames = ['front', 'back', 'right', 'left', 'top', 'bottom'];
 
 export default function Home() {
   const stageRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
   const [gridOn, setGridOn] = useState(true);
   const [activeProject, setActiveProject] = useState<number | null>(null);
   const currentProject = activeProject === null ? null : projects[activeProject];
@@ -35,6 +36,32 @@ export default function Home() {
     addEventListener('pointermove', move, { passive: true });
     return () => removeEventListener('pointermove', move);
   }, []);
+
+  useEffect(() => {
+    const gallery = galleryRef.current;
+    if (!gallery) return;
+
+    const horizontalWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      const atStart = gallery.scrollLeft <= 1;
+      const atEnd = gallery.scrollLeft >= gallery.scrollWidth - gallery.clientWidth - 1;
+      if ((event.deltaY < 0 && atStart) || (event.deltaY > 0 && atEnd)) return;
+      event.preventDefault();
+      gallery.scrollBy({ left: event.deltaY * 1.35 });
+    };
+
+    gallery.addEventListener('wheel', horizontalWheel, { passive: false });
+    return () => gallery.removeEventListener('wheel', horizontalWheel);
+  }, []);
+
+  const openProject = (index: number) => {
+    setActiveProject(index);
+    document.getElementById(`project-${projects[index].number}`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'start',
+    });
+  };
 
   return (
     <main className={`site-shell ${gridOn ? '' : 'grid-off'}`}>
@@ -86,16 +113,16 @@ export default function Home() {
             <span>{currentProject.number} / 09</span>
             <p>{currentProject.title}</p>
             <p>{currentProject.discipline}</p>
-            <a href={`/work/${currentProject.slug}`}>View project ↘</a>
+            <a href={`#project-${currentProject.number}`} onClick={(event) => { event.preventDefault(); openProject(activeProject!); }}>View project ↓</a>
           </>
         </div>}
         <ol className="project-list" id="index" onPointerLeave={() => setActiveProject(null)}>
           {projects.map((project, index) => (
             <li key={project.number}>
               <a
-                href={`/work/${project.slug}`}
+                href={`#project-${project.number}`}
                 className={index === activeProject ? 'is-active' : ''}
-                onClick={() => setActiveProject(index)}
+                onClick={(event) => { event.preventDefault(); openProject(index); }}
                 onPointerEnter={() => setActiveProject(index)}
                 onFocus={() => setActiveProject(index)}
               >
@@ -114,7 +141,7 @@ export default function Home() {
         <span>Selected work ↓</span>
       </section>
 
-      <div className="project-cases">
+      <div className="project-cases" ref={galleryRef} aria-label="Horizontal project gallery">
         {projects.map((project, index) => (
           <article className={`project-case project-case-${index + 1}`} id={`project-${project.number}`} key={project.number}>
             <header className="case-heading">
@@ -130,6 +157,11 @@ export default function Home() {
             </div>
             <div className="case-copy">
               <p>{project.summary}</p>
+              <div className="case-details">
+                <span>01 / Overview</span>
+                <span>02 / Process</span>
+                <span>03 / Final work</span>
+              </div>
               <span>Project imagery + detailed process to be added</span>
             </div>
           </article>
