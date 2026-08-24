@@ -15,7 +15,6 @@ const faceNames = ['front', 'back', 'right', 'left', 'top', 'bottom'];
 
 export default function Home() {
   const stageRef = useRef<HTMLDivElement>(null);
-  const galleryRef = useRef<HTMLDivElement>(null);
   const [gridOn, setGridOn] = useState(true);
   const [activeProject, setActiveProject] = useState<number | null>(null);
   const currentProject = activeProject === null ? null : projects[activeProject];
@@ -37,23 +36,6 @@ export default function Home() {
     return () => removeEventListener('pointermove', move);
   }, []);
 
-  useEffect(() => {
-    const gallery = galleryRef.current;
-    if (!gallery) return;
-
-    const horizontalWheel = (event: WheelEvent) => {
-      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-      const atStart = gallery.scrollLeft <= 1;
-      const atEnd = gallery.scrollLeft >= gallery.scrollWidth - gallery.clientWidth - 1;
-      if ((event.deltaY < 0 && atStart) || (event.deltaY > 0 && atEnd)) return;
-      event.preventDefault();
-      gallery.scrollBy({ left: event.deltaY * 1.35 });
-    };
-
-    gallery.addEventListener('wheel', horizontalWheel, { passive: false });
-    return () => gallery.removeEventListener('wheel', horizontalWheel);
-  }, []);
-
   const openProject = (index: number) => {
     setActiveProject(index);
     document.getElementById(`project-${projects[index].number}`)?.scrollIntoView({
@@ -61,6 +43,11 @@ export default function Home() {
       block: 'start',
       inline: 'start',
     });
+  };
+
+  const moveMedia = (projectNumber: string, direction: number) => {
+    const track = document.getElementById(`media-${projectNumber}`);
+    track?.scrollBy({ left: direction * track.clientWidth * 0.82, behavior: 'smooth' });
   };
 
   return (
@@ -141,7 +128,7 @@ export default function Home() {
         <span>Selected work ↓</span>
       </section>
 
-      <div className="project-cases" ref={galleryRef} aria-label="Horizontal project gallery">
+      <div className="project-cases" aria-label="Project gallery">
         {projects.map((project, index) => (
           <article className={`project-case project-case-${index + 1}`} id={`project-${project.number}`} key={project.number}>
             <header className="case-heading">
@@ -149,11 +136,22 @@ export default function Home() {
               <h2>{project.title}</h2>
               <p>{project.discipline}</p>
             </header>
-            <div className="case-visual" role="img" aria-label={`${project.title} visual placeholder`}>
-              <span className="visual-code">MF—{project.number}</span>
-              <span className="visual-plane visual-plane-a" />
-              <span className="visual-plane visual-plane-b" />
-              <span className="visual-plane visual-plane-c" />
+            <div className="case-media-nav">
+              <span>Drag / swipe through project media</span>
+              <div>
+                <button type="button" aria-label={`Previous media for ${project.title}`} onClick={() => moveMedia(project.number, -1)}>←</button>
+                <button type="button" aria-label={`Next media for ${project.title}`} onClick={() => moveMedia(project.number, 1)}>→</button>
+              </div>
+            </div>
+            <div className="case-media-track" id={`media-${project.number}`}>
+              {[1, 2, 3, 4].map((mediaIndex) => (
+                <div className={`case-visual media-${mediaIndex}`} role="img" aria-label={`${project.title} visual placeholder ${mediaIndex}`} key={mediaIndex}>
+                  <span className="visual-code">MF—{project.number}.{mediaIndex}</span>
+                  <span className="visual-plane visual-plane-a" />
+                  <span className="visual-plane visual-plane-b" />
+                  <span className="visual-plane visual-plane-c" />
+                </div>
+              ))}
             </div>
             <div className="case-copy">
               <p>{project.summary}</p>
