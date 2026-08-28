@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { projects } from './projects';
 
 const cubeFaces = [
@@ -15,7 +15,9 @@ const faceNames = ['front', 'back', 'right', 'left', 'top', 'bottom'];
 
 export default function Home() {
   const stageRef = useRef<HTMLDivElement>(null);
+  const mediaDragRef = useRef<{ track: HTMLDivElement | null; startX: number; startScroll: number }>({ track: null, startX: 0, startScroll: 0 });
   const [gridOn, setGridOn] = useState(true);
+  const [heroChromeVisible, setHeroChromeVisible] = useState(true);
   const [activeProject, setActiveProject] = useState<number | null>(null);
   const currentProject = activeProject === null ? null : projects[activeProject];
 
@@ -36,6 +38,17 @@ export default function Home() {
     return () => removeEventListener('pointermove', move);
   }, []);
 
+  useEffect(() => {
+    const updateHeader = () => setHeroChromeVisible(scrollY < innerHeight * 0.82);
+    updateHeader();
+    addEventListener('scroll', updateHeader, { passive: true });
+    addEventListener('resize', updateHeader, { passive: true });
+    return () => {
+      removeEventListener('scroll', updateHeader);
+      removeEventListener('resize', updateHeader);
+    };
+  }, []);
+
   const openProject = (index: number) => {
     setActiveProject(index);
     document.getElementById(`project-${projects[index].number}`)?.scrollIntoView({
@@ -45,9 +58,32 @@ export default function Home() {
     });
   };
 
-  const moveMedia = (projectNumber: string, direction: number) => {
-    const track = document.getElementById(`media-${projectNumber}`);
-    track?.scrollBy({ left: direction * track.clientWidth * 0.82, behavior: 'smooth' });
+  const beginMediaDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    const track = event.currentTarget;
+    mediaDragRef.current = { track, startX: event.clientX, startScroll: track.scrollLeft };
+    track.setPointerCapture(event.pointerId);
+    track.classList.add('is-dragging');
+  };
+
+  const updateMediaDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = mediaDragRef.current;
+    if (drag.track !== event.currentTarget) return;
+    const distance = event.clientX - drag.startX;
+    drag.track.scrollLeft = drag.startScroll - distance;
+    drag.track.style.setProperty('--drag-angle', `${Math.max(-8, Math.min(8, distance / 24))}deg`);
+  };
+
+  const endMediaDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const track = event.currentTarget;
+    if (mediaDragRef.current.track !== track) return;
+    track.classList.remove('is-dragging');
+    track.style.setProperty('--drag-angle', '0deg');
+    const firstSlide = track.querySelector<HTMLElement>('.case-visual');
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+    const step = (firstSlide?.offsetWidth ?? track.clientWidth) + gap;
+    track.scrollTo({ left: Math.round(track.scrollLeft / step) * step, behavior: 'smooth' });
+    mediaDragRef.current.track = null;
   };
 
   return (
@@ -55,16 +91,16 @@ export default function Home() {
       <div className="ruler ruler-x" aria-hidden="true" />
       <div className="ruler ruler-y" aria-hidden="true" />
 
-      <header className="site-header">
-        <button className="grid-toggle" type="button" aria-pressed={gridOn} onClick={() => setGridOn((value) => !value)}>
+      <header className={`site-header ${heroChromeVisible ? '' : 'past-hero'}`}>
+        <button className="grid-toggle hero-only" type="button" aria-pressed={gridOn} onClick={() => setGridOn((value) => !value)}>
           Grid / {gridOn ? 'On' : 'Off'}
         </button>
-        <nav aria-label="Primary navigation">
+        <nav className="hero-only" aria-label="Primary navigation">
           <a href="#selected">Selected Work,</a>
           <a href="#index">Index,</a>
           <a href="#profile">Profile</a>
         </nav>
-        <p className="availability">UCLA MSAUD · Los Angeles</p>
+        <p className="availability hero-only">UCLA MSAUD · Los Angeles</p>
         <a className="contact" href="#contact">Contact?</a>
       </header>
 
@@ -137,13 +173,16 @@ export default function Home() {
               <p>{project.discipline}</p>
             </header>
             <div className="case-media-nav">
-              <span>Drag / swipe through project media</span>
-              <div>
-                <button type="button" aria-label={`Previous media for ${project.title}`} onClick={() => moveMedia(project.number, -1)}>←</button>
-                <button type="button" aria-label={`Next media for ${project.title}`} onClick={() => moveMedia(project.number, 1)}>→</button>
-              </div>
+              <span>Hold and drag / swipe to turn through project media</span>
             </div>
-            <div className="case-media-track" id={`media-${project.number}`}>
+            <div
+              className="case-media-track"
+              id={`media-${project.number}`}
+              onPointerDown={beginMediaDrag}
+              onPointerMove={updateMediaDrag}
+              onPointerUp={endMediaDrag}
+              onPointerCancel={endMediaDrag}
+            >
               {[1, 2, 3, 4].map((mediaIndex) => (
                 <div className={`case-visual media-${mediaIndex}`} role="img" aria-label={`${project.title} visual placeholder ${mediaIndex}`} key={mediaIndex}>
                   <span className="visual-code">MF—{project.number}.{mediaIndex}</span>
